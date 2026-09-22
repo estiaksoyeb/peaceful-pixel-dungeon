@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.FloorCheckpoint;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.Rankings;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
@@ -568,6 +569,11 @@ public class GameScene extends PixelScene {
 				SpellSprite.show(Dungeon.hero, SpellSprite.ANKH);
 				new Flare( 5, 16 ).color( 0xFFFF00, true ).show( hero, 4f ) ;
 				break;
+			case REWIND:
+				Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
+				ScrollOfTeleportation.appearVFX( Dungeon.hero );
+				new Flare( 5, 16 ).color( 0x00FFFF, true ).show( hero, 4f ) ;
+				break;
 			case RETURN:
 				if (Dungeon.level.pit[Dungeon.hero.pos] && !Dungeon.hero.flying){
 					//delay this so falling into the chasm processes properly
@@ -655,6 +661,8 @@ public class GameScene extends PixelScene {
 				GLog.h(Messages.get(this, "warp"));
 			} else if (InterlevelScene.mode == InterlevelScene.Mode.RESURRECT) {
 				GLog.h(Messages.get(this, "resurrect"), Dungeon.depth);
+			} else if (InterlevelScene.mode == InterlevelScene.Mode.REWIND) {
+				GLog.h(Messages.get(this, "rewind"), Dungeon.depth);
 			} else {
 				GLog.h(Messages.get(this, "return"), Dungeon.depth);
 			}
@@ -738,6 +746,7 @@ public class GameScene extends PixelScene {
 			}
 
 			InterlevelScene.mode = InterlevelScene.Mode.NONE;
+			FloorCheckpoint.isRewinding = false;
 
 			
 		}

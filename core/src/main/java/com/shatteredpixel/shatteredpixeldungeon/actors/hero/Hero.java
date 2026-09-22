@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.FloorCheckpoint;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
@@ -2233,6 +2234,11 @@ public class Hero extends Char {
 			return;
 		}
 		
+		if (FloorCheckpoint.isEnabled() && FloorCheckpoint.hasCheckpoint(Dungeon.depth, Dungeon.branch)) {
+			FloorCheckpoint.rewind();
+			return;
+		}
+
 		Actor.fixTime();
 		super.die( cause );
 		reallyDie( cause );

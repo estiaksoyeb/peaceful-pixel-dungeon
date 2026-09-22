@@ -48,6 +48,10 @@ public class GamesInProgress {
 	private static final String GAME_FILE	= "game.dat";
 	private static final String DEPTH_FILE	= "depth%d.dat";
 	private static final String DEPTH_BRANCH_FILE	= "depth%d-branch%d.dat";
+	private static final String CHECKPOINT_FILE = "checkpoint_depth%d.dat";
+	private static final String CHECKPOINT_BRANCH_FILE = "checkpoint_depth%d-branch%d.dat";
+	private static final String CHECKPOINT_ASCEND_FILE = "checkpoint_depth%d_ascend.dat";
+	private static final String CHECKPOINT_BRANCH_ASCEND_FILE = "checkpoint_depth%d-branch%d_ascend.dat";
 	
 	public static boolean gameExists( int slot ){
 		return FileUtils.dirExists(gameFolder(slot))
@@ -67,6 +71,14 @@ public class GamesInProgress {
 			return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE, depth);
 		} else {
 			return gameFolder(slot) + "/" + Messages.format(DEPTH_BRANCH_FILE, depth, branch);
+		}
+	}
+
+	public static String checkpointFile( int slot, int depth, int branch, boolean ascending ) {
+		if (branch == 0) {
+			return gameFolder(slot) + "/" + (ascending ? Messages.format(CHECKPOINT_ASCEND_FILE, depth) : Messages.format(CHECKPOINT_FILE, depth));
+		} else {
+			return gameFolder(slot) + "/" + (ascending ? Messages.format(CHECKPOINT_BRANCH_ASCEND_FILE, depth, branch) : Messages.format(CHECKPOINT_BRANCH_FILE, depth, branch));
 		}
 	}
 	

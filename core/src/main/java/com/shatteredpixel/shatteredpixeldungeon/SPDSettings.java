@@ -477,4 +477,15 @@ public class SPDSettings extends GameSettings {
 	public static int fulLScreenMonitor(){
 		return getInt( KEY_FULLSCREEN_MONITOR, 0 );
 	}
+
+	// Floor-Rewind Mod
+	public static final String KEY_FLOOR_REWIND = "floor_rewind";
+
+	public static void floorRewind( boolean value ){
+		put( KEY_FLOOR_REWIND, value );
+	}
+
+	public static boolean floorRewind(){
+		return getBoolean( KEY_FLOOR_REWIND, true );
+	}
 }

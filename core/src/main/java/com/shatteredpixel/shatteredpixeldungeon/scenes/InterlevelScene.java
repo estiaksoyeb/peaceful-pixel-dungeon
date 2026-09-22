@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.FloorCheckpoint;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
@@ -79,7 +80,7 @@ public class InterlevelScene extends PixelScene {
 	private static float fadeTime;
 	
 	public enum Mode {
-		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, RESET, NONE
+		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, RESET, REWIND, NONE
 	}
 	public static Mode mode;
 
@@ -440,6 +441,9 @@ public class InterlevelScene extends PixelScene {
 								break;
 							case RESET:
 								reset();
+								break;
+							case REWIND:
+								rewind();
 								break;
 						}
 						
@@ -810,6 +814,13 @@ public class InterlevelScene extends PixelScene {
 
 		Level level = Dungeon.newLevel();
 		Dungeon.switchLevel( level, level.entrance() );
+	}
+
+	private void rewind() throws IOException {
+		Mob.clearHeldAllies();
+		GameLog.wipe();
+
+		FloorCheckpoint.restore( GamesInProgress.curSlot, Dungeon.depth, Dungeon.branch );
 	}
 	
 	@Override

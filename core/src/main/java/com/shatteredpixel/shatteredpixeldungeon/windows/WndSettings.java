@@ -368,6 +368,7 @@ public class WndSettings extends WndTabbed {
 		ColorBlock sep2;
 		CheckBox chkFont;
 		CheckBox chkVibrate;
+		CheckBox chkFloorRewind;
 
 		@Override
 		protected void createChildren() {
@@ -601,6 +602,16 @@ public class WndSettings extends WndTabbed {
 				chkVibrate.checked(SPDSettings.vibration());
 			}
 			add(chkVibrate);
+
+			chkFloorRewind = new CheckBox(Messages.get(this, "floor_rewind")) {
+				@Override
+				protected void onClick() {
+					super.onClick();
+					SPDSettings.floorRewind(checked());
+				}
+			};
+			chkFloorRewind.checked(SPDSettings.floorRewind());
+			add(chkFloorRewind);
 		}
 
 		@Override
@@ -648,6 +659,9 @@ public class WndSettings extends WndTabbed {
 				chkVibrate.setRect(0, chkFont.bottom() + GAP, width, BTN_HEIGHT);
 				height = chkVibrate.bottom();
 			}
+
+			chkFloorRewind.setRect(0, height + GAP, width, BTN_HEIGHT);
+			height = chkFloorRewind.bottom();
 		}
 
 	}
