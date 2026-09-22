@@ -1,0 +1,94 @@
+---
+name: Build Release
+
+"on":
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (leave empty for v<versionName>)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Prepare Keystore and Signing Config
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          KEYSTORE_PATH="$RUNNER_TEMP/release.jks"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_PATH"
+
+          cat <<EOF > sign-init.gradle
+          allprojects {
+              plugins.withId("com.android.application") {
+                  android {
+                      signingConfigs {
+                          release {
+                              storeFile file("$KEYSTORE_PATH")
+                              storePassword "$STORE_PASSWORD"
+                              keyAlias "$KEY_ALIAS"
+                              keyPassword "$KEY_PASSWORD"
+                          }
+                      }
+                      buildTypes {
+                          release {
+                              signingConfig signingConfigs.release
+                          }
+                      }
+                  }
+              }
+          }
+          EOF
+
+      - name: Determine Release Tag
+        id: get_version
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag_name }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          else
+            VERSION=$(grep 'appVersionName' build.gradle | cut -d "'" -f 2)
+            TAG="v${VERSION:-latest}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Build Release APK
+        run: ./gradlew android:assembleRelease -I sign-init.gradle
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: android/build/outputs/apk/release/*.apk
+
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: "Release ${{ steps.get_version.outputs.tag }}"
+          files: android/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
