@@ -5,7 +5,6 @@
 ### ✨ Peaceful Features
 - **Death Rewind**: When your hero falls, time fractures and rewinds you back to the entrance of the current floor instead of ending the run with permadeath. Completed floors and previously gained progress remain safe.
 - **Relaxed Hunger**: Hunger accumulates 50% slower, and starvation does not inflict fatal damage—letting you explore rooms and manage your inventory without constant food pressure.
-- **Side-by-Side Installation**: Uses the package ID `com.estiaksoyeb.peacefulpixeldungeon`, allowing it to be installed and played alongside official Shattered Pixel Dungeon without overwriting existing save files or app data.
 - **Toggleable in Settings**: All peaceful modes can be toggled on or off at any time under the Game Settings menu (`Settings -> UI`).
 
 ---
