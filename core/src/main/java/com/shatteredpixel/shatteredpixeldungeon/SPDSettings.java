@@ -488,4 +488,15 @@ public class SPDSettings extends GameSettings {
 	public static boolean floorRewind(){
 		return getBoolean( KEY_FLOOR_REWIND, true );
 	}
+
+	// Relaxed Hunger Mod
+	public static final String KEY_RELAXED_HUNGER = "relaxed_hunger";
+
+	public static void relaxedHunger( boolean value ){
+		put( KEY_RELAXED_HUNGER, value );
+	}
+
+	public static boolean relaxedHunger(){
+		return getBoolean( KEY_RELAXED_HUNGER, false );
+	}
 }

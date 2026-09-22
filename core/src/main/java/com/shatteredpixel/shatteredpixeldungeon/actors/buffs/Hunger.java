@@ -77,11 +77,13 @@ public class Hunger extends Buff implements Hero.Doom {
 
 			if (isStarving()) {
 
-				partialDamage += target.HT/1000f;
+				if (!SPDSettings.relaxedHunger()) {
+					partialDamage += target.HT/1000f;
 
-				if (partialDamage > 1){
-					target.damage( (int)partialDamage, this);
-					partialDamage -= (int)partialDamage;
+					if (partialDamage > 1){
+						target.damage( (int)partialDamage, this);
+						partialDamage -= (int)partialDamage;
+					}
 				}
 				
 			} else {
@@ -92,11 +94,18 @@ public class Hunger extends Buff implements Hero.Doom {
 				}
 				hungerDelay /= SaltCube.hungerGainMultiplier();
 
-				float newLevel = level + (1f/hungerDelay);
+				float gain = (1f/hungerDelay);
+				if (SPDSettings.relaxedHunger()) {
+					gain *= 0.5f;
+				}
+
+				float newLevel = level + gain;
 				if (newLevel >= STARVING) {
 
 					GLog.n( Messages.get(this, "onstarving") );
-					hero.damage( 1, this );
+					if (!SPDSettings.relaxedHunger()) {
+						hero.damage( 1, this );
+					}
 
 					hero.interrupt();
 					newLevel = STARVING;
@@ -149,10 +158,12 @@ public class Hunger extends Buff implements Hero.Doom {
 		} else if (level > STARVING) {
 			float excess = level - STARVING;
 			level = STARVING;
-			partialDamage += excess * (target.HT/1000f);
-			if (partialDamage > 1f){
-				target.damage( (int)partialDamage, this );
-				partialDamage -= (int)partialDamage;
+			if (!SPDSettings.relaxedHunger()) {
+				partialDamage += excess * (target.HT/1000f);
+				if (partialDamage > 1f){
+					target.damage( (int)partialDamage, this );
+					partialDamage -= (int)partialDamage;
+				}
 			}
 		}
 
@@ -160,7 +171,9 @@ public class Hunger extends Buff implements Hero.Doom {
 			GLog.w( Messages.get(this, "onhungry") );
 		} else if (oldLevel < STARVING && level >= STARVING){
 			GLog.n( Messages.get(this, "onstarving") );
-			target.damage( 1, this );
+			if (!SPDSettings.relaxedHunger()) {
+				target.damage( 1, this );
+			}
 		}
 
 		BuffIndicator.refreshHero();
@@ -204,6 +217,10 @@ public class Hunger extends Buff implements Hero.Doom {
 		}
 
 		result += Messages.get(this, "desc");
+
+		if (SPDSettings.relaxedHunger() && isStarving()) {
+			result += "\n\n" + Messages.get(this, "desc_relaxed");
+		}
 
 		return result;
 	}

@@ -369,6 +369,7 @@ public class WndSettings extends WndTabbed {
 		CheckBox chkFont;
 		CheckBox chkVibrate;
 		CheckBox chkFloorRewind;
+		CheckBox chkRelaxedHunger;
 
 		@Override
 		protected void createChildren() {
@@ -612,6 +613,16 @@ public class WndSettings extends WndTabbed {
 			};
 			chkFloorRewind.checked(SPDSettings.floorRewind());
 			add(chkFloorRewind);
+
+			chkRelaxedHunger = new CheckBox(Messages.get(this, "relaxed_hunger")) {
+				@Override
+				protected void onClick() {
+					super.onClick();
+					SPDSettings.relaxedHunger(checked());
+				}
+			};
+			chkRelaxedHunger.checked(SPDSettings.relaxedHunger());
+			add(chkRelaxedHunger);
 		}
 
 		@Override
@@ -654,14 +665,19 @@ public class WndSettings extends WndTabbed {
 				chkVibrate.setRect(chkFont.right()+2, chkFont.top(), width/2-1, BTN_HEIGHT);
 				height = chkVibrate.bottom();
 
+				chkFloorRewind.setRect(0, height + GAP, width/2-1, BTN_HEIGHT);
+				chkRelaxedHunger.setRect(chkFloorRewind.right()+2, chkFloorRewind.top(), width/2-1, BTN_HEIGHT);
+				height = chkRelaxedHunger.bottom();
+
 			} else {
 				chkFont.setRect(0, sep2.y + 1 + GAP, width, BTN_HEIGHT);
 				chkVibrate.setRect(0, chkFont.bottom() + GAP, width, BTN_HEIGHT);
 				height = chkVibrate.bottom();
-			}
 
-			chkFloorRewind.setRect(0, height + GAP, width, BTN_HEIGHT);
-			height = chkFloorRewind.bottom();
+				chkFloorRewind.setRect(0, height + GAP, width, BTN_HEIGHT);
+				chkRelaxedHunger.setRect(0, chkFloorRewind.bottom() + GAP, width, BTN_HEIGHT);
+				height = chkRelaxedHunger.bottom();
+			}
 		}
 
 	}
