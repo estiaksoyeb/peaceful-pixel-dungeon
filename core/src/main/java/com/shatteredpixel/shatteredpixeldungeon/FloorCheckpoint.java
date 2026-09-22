@@ -33,11 +33,8 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.FileUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class FloorCheckpoint {
 
@@ -93,15 +90,11 @@ public class FloorCheckpoint {
 	}
 
 	public static void onFloorEntered(int depth, int branch) {
-		if (!isEnabled()) {
+		if (!isEnabled() || isRewinding) {
 			return;
 		}
 
 		boolean ascending = isAscending();
-		if (hasCheckpoint(depth, branch, ascending)) {
-			return;
-		}
-
 		createCheckpoint(depth, branch, ascending);
 	}
 
@@ -219,52 +212,9 @@ public class FloorCheckpoint {
 			throw new IOException("Failed to deserialize checkpoint level");
 		}
 
-		// 3. Clean up future levels and checkpoints that occurred after this checkpoint
-		cleanFutureLevelsAndCheckpoints(slot);
-
-		// 4. Switch to restored level
+		// 3. Switch to restored level
 		Dungeon.switchLevel(level, Dungeon.hero.pos);
 
 		return true;
-	}
-
-	public static void cleanFutureLevelsAndCheckpoints(int slot) {
-		String folder = GamesInProgress.gameFolder(slot);
-		ArrayList<String> files = FileUtils.filesInDir(folder);
-
-		// Matches depth%d.dat or depth%d-branch%d.dat
-		Pattern depthPattern = Pattern.compile("^depth(\\d+)(?:-branch(\\d+))?\\.dat$");
-		// Matches checkpoint_depth%d.dat or checkpoint_depth%d-branch%d.dat or with _ascend
-		Pattern checkpointPattern = Pattern.compile("^checkpoint_depth(\\d+)(?:-branch(\\d+))?(?:_ascend)?\\.dat$");
-
-		for (String fileName : files) {
-			Matcher m = depthPattern.matcher(fileName);
-			if (m.matches()) {
-				int d = Integer.parseInt(m.group(1));
-				int b = m.group(2) != null ? Integer.parseInt(m.group(2)) : 0;
-				if (!Dungeon.levelHasBeenGenerated(d, b)) {
-					FileUtils.deleteFile(folder + "/" + fileName);
-				}
-				continue;
-			}
-
-			Matcher cm = checkpointPattern.matcher(fileName);
-			if (cm.matches()) {
-				int d = Integer.parseInt(cm.group(1));
-				int b = cm.group(2) != null ? Integer.parseInt(cm.group(2)) : 0;
-				boolean isAsc = fileName.contains("_ascend");
-				if (!Dungeon.levelHasBeenGenerated(d, b)) {
-					FileUtils.deleteFile(folder + "/" + fileName);
-					memoryCheckpoints.remove(floorId(d, b, isAsc));
-				}
-			}
-		}
-
-		memoryCheckpoints.keySet().removeIf(id -> {
-			int baseFloor = id % 100000;
-			int d = baseFloor % 1000;
-			int b = baseFloor / 1000;
-			return !Dungeon.levelHasBeenGenerated(d, b);
-		});
 	}
 }
