@@ -570,9 +570,11 @@ public class GameScene extends PixelScene {
 				new Flare( 5, 16 ).color( 0xFFFF00, true ).show( hero, 4f ) ;
 				break;
 			case REWIND:
-				Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
+				Sample.INSTANCE.play(Assets.Sounds.BEACON, 1.2f, 1.1f);
 				ScrollOfTeleportation.appearVFX( Dungeon.hero );
-				new Flare( 5, 16 ).color( 0x00FFFF, true ).show( hero, 4f ) ;
+				new Flare( 6, 24 ).color( 0x00FFFF, true ).show( hero, 3f );
+				flash( 0x00FFFF, true );
+				PixelScene.shake( 2, 0.4f );
 				break;
 			case RETURN:
 				if (Dungeon.level.pit[Dungeon.hero.pos] && !Dungeon.hero.flying){
@@ -662,7 +664,11 @@ public class GameScene extends PixelScene {
 			} else if (InterlevelScene.mode == InterlevelScene.Mode.RESURRECT) {
 				GLog.h(Messages.get(this, "resurrect"), Dungeon.depth);
 			} else if (InterlevelScene.mode == InterlevelScene.Mode.REWIND) {
-				GLog.h(Messages.get(this, "rewind"), Dungeon.depth);
+				if (FloorCheckpoint.lastDeathCause != null) {
+					GLog.n(Messages.get(this, "death_cause_rewind", FloorCheckpoint.lastDeathCause));
+					FloorCheckpoint.lastDeathCause = null;
+				}
+				GLog.p(Messages.get(this, "rewind"), Dungeon.depth);
 			} else {
 				GLog.h(Messages.get(this, "return"), Dungeon.depth);
 			}

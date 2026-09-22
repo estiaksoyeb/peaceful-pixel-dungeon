@@ -2235,7 +2235,8 @@ public class Hero extends Char {
 		}
 		
 		if (FloorCheckpoint.isEnabled() && FloorCheckpoint.hasCheckpoint(Dungeon.depth, Dungeon.branch)) {
-			FloorCheckpoint.rewind();
+			Sample.INSTANCE.play(Assets.Sounds.SHATTER, 1f, 0.8f);
+			FloorCheckpoint.rewind( cause );
 			return;
 		}
 

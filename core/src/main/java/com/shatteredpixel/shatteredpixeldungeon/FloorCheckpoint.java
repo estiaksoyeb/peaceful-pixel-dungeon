@@ -22,8 +22,10 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
@@ -57,6 +59,7 @@ public class FloorCheckpoint {
 
 	private static final Map<Integer, CheckpointData> memoryCheckpoints = new HashMap<>();
 	public static boolean isRewinding = false;
+	public static String lastDeathCause = null;
 
 	public static boolean isEnabled() {
 		return SPDSettings.floorRewind();
@@ -73,6 +76,7 @@ public class FloorCheckpoint {
 	public static void clear() {
 		memoryCheckpoints.clear();
 		isRewinding = false;
+		lastDeathCause = null;
 	}
 
 	public static boolean hasCheckpoint(int depth, int branch) {
@@ -152,10 +156,31 @@ public class FloorCheckpoint {
 	}
 
 	public static void rewind() {
+		rewind(null);
+	}
+
+	public static void rewind(Object cause) {
 		if (isRewinding) {
 			return;
 		}
 		isRewinding = true;
+
+		if (cause != null) {
+			Class<?> causeClass = cause instanceof Class ? (Class<?>) cause : cause.getClass();
+			String name = Messages.get(causeClass, "name");
+			String desc = Messages.get(causeClass, "rankings_desc", name);
+			if (desc.contains(Messages.NO_TEXT_FOUND)) {
+				if (cause instanceof Char) {
+					lastDeathCause = ((Char) cause).name();
+				} else {
+					lastDeathCause = null;
+				}
+			} else {
+				lastDeathCause = desc;
+			}
+		} else {
+			lastDeathCause = null;
+		}
 
 		Actor.fixTime();
 		if (Dungeon.hero != null) {

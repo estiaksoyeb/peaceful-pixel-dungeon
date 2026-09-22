@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.FloorCheckpoint;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -58,6 +59,10 @@ public class MenuPane extends Component {
 	private Image challengeIcon;
 	private BitmapText challengeText;
 	private Button challengeButton;
+
+	private Image rewindIcon;
+	private Button rewindButton;
+	private float rewindPulseTime;
 
 	private JournalButton btnJournal;
 	private MenuButton btnMenu;
@@ -141,6 +146,31 @@ public class MenuPane extends Component {
 			add(challengeButton);
 		}
 
+		rewindIcon = Icons.get(Icons.REPEAT);
+		rewindIcon.scale.set(7f / 11f);
+		rewindIcon.hardlight(0.35f, 0.9f, 1.0f);
+		rewindIcon.visible = FloorCheckpoint.isEnabled();
+		add(rewindIcon);
+
+		rewindButton = new Button(){
+			@Override
+			protected String hoverText() {
+				return Messages.get(MenuPane.class, "rewind_title");
+			}
+
+			@Override
+			protected void onClick() {
+				super.onClick();
+				GameScene.show(new WndTitledMessage(
+						Icons.get(Icons.REPEAT),
+						Messages.get(MenuPane.class, "rewind_title"),
+						Messages.get(MenuPane.class, "rewind_desc")
+				));
+			}
+		};
+		rewindButton.visible = rewindButton.active = FloorCheckpoint.isEnabled();
+		add(rewindButton);
+
 		btnJournal = new JournalButton();
 		add( btnJournal );
 
@@ -207,8 +237,32 @@ public class MenuPane extends Component {
 			challengeButton.setRect(challengeIcon.x, challengeIcon.y, challengeIcon.width(), challengeIcon.height() + challengeText.height());
 		}
 
+		int rewindOfs = (challengeIcon != null ? 21 : 14);
+		rewindIcon.x = btnJournal.left() - rewindOfs + (7 - rewindIcon.width())/2f - 0.1f;
+		rewindIcon.y = depthIcon.y;
+		PixelScene.align(rewindIcon);
+
+		rewindButton.setRect(rewindIcon.x - 1, rewindIcon.y - 1, 9, 15);
+
 		danger.setPos( x + WIDTH - danger.width(), y + bg.height + 1 );
 		danger.setSize( camera.width - danger.width(), danger.height());
+	}
+
+	@Override
+	public void update() {
+		super.update();
+
+		boolean enabled = FloorCheckpoint.isEnabled();
+		if (rewindIcon.visible != enabled) {
+			rewindIcon.visible = enabled;
+			rewindButton.visible = rewindButton.active = enabled;
+		}
+
+		if (enabled) {
+			rewindPulseTime += Game.elapsed;
+			float brightness = 1.0f + 0.25f * (float)Math.sin(rewindPulseTime * 3.5f);
+			rewindIcon.hardlight(0.35f * brightness, 0.9f * brightness, 1.0f * brightness);
+		}
 	}
 
 	public void pickup(Item item, int cell) {
