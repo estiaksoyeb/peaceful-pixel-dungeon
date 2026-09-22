@@ -66,8 +66,8 @@ public class FloorCheckpoint {
 		return Dungeon.hero != null && Dungeon.hero.buff(AscensionChallenge.class) != null;
 	}
 
-	public static int floorId(int depth, int branch, boolean ascending) {
-		return depth + 1000 * branch + (ascending ? 100000 : 0);
+	public static int checkpointKey(int slot, int depth, int branch, boolean ascending) {
+		return slot * 1000000 + depth + 1000 * branch + (ascending ? 100000 : 0);
 	}
 
 	public static void clear() {
@@ -77,15 +77,19 @@ public class FloorCheckpoint {
 	}
 
 	public static boolean hasCheckpoint(int depth, int branch) {
-		return hasCheckpoint(depth, branch, isAscending());
+		return hasCheckpoint(GamesInProgress.curSlot, depth, branch, isAscending());
 	}
 
-	public static boolean hasCheckpoint(int depth, int branch, boolean ascending) {
-		int id = floorId(depth, branch, ascending);
+	public static boolean hasCheckpoint(int slot, int depth, int branch) {
+		return hasCheckpoint(slot, depth, branch, isAscending());
+	}
+
+	public static boolean hasCheckpoint(int slot, int depth, int branch, boolean ascending) {
+		int id = checkpointKey(slot, depth, branch, ascending);
 		if (memoryCheckpoints.containsKey(id)) {
 			return true;
 		}
-		String file = GamesInProgress.checkpointFile(GamesInProgress.curSlot, depth, branch, ascending);
+		String file = GamesInProgress.checkpointFile(slot, depth, branch, ascending);
 		return FileUtils.fileExists(file);
 	}
 
@@ -95,17 +99,22 @@ public class FloorCheckpoint {
 		}
 
 		boolean ascending = isAscending();
-		createCheckpoint(depth, branch, ascending);
+		createCheckpoint(GamesInProgress.curSlot, depth, branch, ascending);
 	}
 
 	public static void createCheckpoint(int depth, int branch, boolean ascending) {
+		createCheckpoint(GamesInProgress.curSlot, depth, branch, ascending);
+	}
+
+	public static void createCheckpoint(int slot, int depth, int branch, boolean ascending) {
 		try {
 			Bundle dungeonBundle = Dungeon.gameToBundle();
 			Bundle levelBundle = new Bundle();
 			levelBundle.put(Dungeon.LEVEL, Dungeon.level);
 
 			CheckpointData cp = new CheckpointData(depth, branch, ascending, dungeonBundle, levelBundle);
-			memoryCheckpoints.put(floorId(depth, branch, ascending), cp);
+			memoryCheckpoints.clear();
+			memoryCheckpoints.put(checkpointKey(slot, depth, branch, ascending), cp);
 
 			Bundle fileBundle = new Bundle();
 			fileBundle.put("depth", depth);
@@ -114,7 +123,7 @@ public class FloorCheckpoint {
 			fileBundle.put("dungeon", dungeonBundle);
 			fileBundle.put("level", levelBundle);
 
-			String file = GamesInProgress.checkpointFile(GamesInProgress.curSlot, depth, branch, ascending);
+			String file = GamesInProgress.checkpointFile(slot, depth, branch, ascending);
 			FileUtils.bundleToFile(file, fileBundle);
 		} catch (Exception e) {
 			ShatteredPixelDungeon.reportException(e);
@@ -122,13 +131,17 @@ public class FloorCheckpoint {
 	}
 
 	public static CheckpointData getCheckpoint(int depth, int branch, boolean ascending) {
-		int id = floorId(depth, branch, ascending);
+		return getCheckpoint(GamesInProgress.curSlot, depth, branch, ascending);
+	}
+
+	public static CheckpointData getCheckpoint(int slot, int depth, int branch, boolean ascending) {
+		int id = checkpointKey(slot, depth, branch, ascending);
 		CheckpointData cp = memoryCheckpoints.get(id);
 		if (cp != null) {
 			return cp;
 		}
 
-		String file = GamesInProgress.checkpointFile(GamesInProgress.curSlot, depth, branch, ascending);
+		String file = GamesInProgress.checkpointFile(slot, depth, branch, ascending);
 		if (FileUtils.fileExists(file)) {
 			try {
 				Bundle fileBundle = FileUtils.bundleFromFile(file);
@@ -159,17 +172,21 @@ public class FloorCheckpoint {
 		isRewinding = true;
 
 		if (cause != null) {
-			Class<?> causeClass = cause instanceof Class ? (Class<?>) cause : cause.getClass();
-			String name = Messages.get(causeClass, "name");
-			String desc = Messages.get(causeClass, "rankings_desc", name);
-			if (desc.contains(Messages.NO_TEXT_FOUND)) {
-				if (cause instanceof Char) {
-					lastDeathCause = ((Char) cause).name();
-				} else {
-					lastDeathCause = null;
-				}
+			if (cause instanceof String) {
+				lastDeathCause = (String) cause;
 			} else {
-				lastDeathCause = desc;
+				Class<?> causeClass = cause instanceof Class ? (Class<?>) cause : cause.getClass();
+				String name = Messages.get(causeClass, "name");
+				String desc = Messages.get(causeClass, "rankings_desc", name);
+				if (desc.contains(Messages.NO_TEXT_FOUND)) {
+					if (cause instanceof Char) {
+						lastDeathCause = ((Char) cause).name();
+					} else {
+						lastDeathCause = null;
+					}
+				} else {
+					lastDeathCause = desc;
+				}
 			}
 		} else {
 			lastDeathCause = null;
@@ -192,9 +209,9 @@ public class FloorCheckpoint {
 
 	public static boolean restore(int slot, int depth, int branch) throws IOException {
 		boolean ascending = isAscending();
-		CheckpointData cp = getCheckpoint(depth, branch, ascending);
+		CheckpointData cp = getCheckpoint(slot, depth, branch, ascending);
 		if (cp == null && !ascending) {
-			cp = getCheckpoint(depth, branch, false);
+			cp = getCheckpoint(slot, depth, branch, false);
 		}
 		if (cp == null) {
 			isRewinding = false;

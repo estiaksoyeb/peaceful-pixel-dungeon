@@ -733,6 +733,7 @@ public class Dungeon {
 	}
 	
 	public static void loadGame( int save, boolean fullLoad ) throws IOException {
+		FloorCheckpoint.clear();
 		Bundle bundle = FileUtils.bundleFromFile( GamesInProgress.gameFile( save ) );
 		bundleToGame( bundle, fullLoad );
 	}
@@ -854,6 +855,8 @@ public class Dungeon {
 	
 	public static void deleteGame( int save, boolean deleteLevels ) {
 
+		FloorCheckpoint.clear();
+
 		if (deleteLevels) {
 			String folder = GamesInProgress.gameFolder(save);
 			for (String file : FileUtils.filesInDir(folder)){
@@ -883,7 +886,7 @@ public class Dungeon {
 	}
 	
 	public static void fail( Object cause ) {
-		if (FloorCheckpoint.isEnabled()) {
+		if (FloorCheckpoint.isEnabled() && FloorCheckpoint.hasCheckpoint(depth, branch)) {
 			return;
 		}
 		if (WndResurrect.instance == null) {
